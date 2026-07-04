@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="StudyPulse — a live study stress & burnout detector for students. Works on phone, tablet, laptop and desktop.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StudyPulse">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>StudyPulse — Study Stress Detector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;--green:#00e5a0;--yellow:#f5c842;--orange:#ff8c42;--red:#ff4d6d;--blue:#4f8ef7;--text:#e8edf5;--muted:#6b7fa3;--font:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;--radius:14px;--tap:44px;--vh:1vh;--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:calc(var(--vh) * 100);min-height:100svh;overflow-x:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none;}
+.screen{display:none;min-height:calc(var(--vh) * 100);min-height:100svh;}
+.screen.active{display:flex;}
+#loginScreen{align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at 30% 20%,#0d2040 0%,var(--bg) 60%);padding:max(20px,var(--sat)) max(20px,var(--sar)) max(20px,var(--sab)) max(20px,var(--sal));position:relative;overflow:hidden;}
+#loginScreen::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,160,0.06) 0%,transparent 70%);top:-150px;left:-100px;pointer-events:none;}
+.brand{text-align:center;margin-bottom:32px;}
+.brand-icon{width:60px;height:60px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px;box-shadow:0 0 40px rgba(0,229,160,0.2);}
+.brand h1{font-size:clamp(1.8rem,5vw,2.4rem);font-weight:700;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.5px;}
+.brand p{color:var(--muted);margin-top:8px;font-size:clamp(0.8rem,3vw,0.95rem);padding:0 10px;}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:clamp(20px,5vw,36px);width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,0.5);}
+.tab-row{display:flex;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:24px;}
+.tab-btn{flex:1;padding:11px;border:none;background:transparent;color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font);font-size:0.9rem;font-weight:500;transition:all 0.2s;min-height:var(--tap);}
+.tab-btn.active{background:var(--green);color:#000;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:0.78rem;color:var(--muted);margin-bottom:7px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.form-group input,.form-group select{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:var(--font);font-size:16px;outline:none;transition:border-color 0.2s;-webkit-appearance:none;appearance:none;min-height:var(--tap);}
+.form-group input:focus,.form-group select:focus{border-color:var(--green);}
+.form-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7fa3' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+.form-group select option{background:var(--surface2);}
+.btn-primary{width:100%;padding:15px;background:linear-gradient(135deg,var(--green),#00c488);border:none;border-radius:10px;color:#000;font-family:var(--font);font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:4px;min-height:var(--tap);touch-action:manipulation;}
+.btn-primary:active{opacity:0.85;transform:scale(0.98);}
+.error-msg{color:var(--red);font-size:0.85rem;margin-top:10px;text-align:center;display:none;}
+.demo-link{background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;font-family:var(--font);margin-top:14px;display:block;width:100%;text-align:center;padding:8px;}
+#dashScreen{flex-direction:column;background:var(--bg);}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:calc(12px + var(--sat)) max(16px,var(--sar)) 12px max(16px,var(--sal));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.topbar-left{display:flex;align-items:center;gap:10px;min-width:0;}
+.topbar-logo{font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap;}
+.topbar-user{color:var(--muted);font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;}
+#gradeTag{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:0.72rem;color:var(--muted);font-family:var(--mono);white-space:nowrap;}
+.btn-logout{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:8px 12px;font-family:var(--font);font-size:0.82rem;cursor:pointer;min-height:36px;flex-shrink:0;}
+.btn-logout:active{border-color:var(--red);color:var(--red);}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 4px calc(8px + var(--sab));z-index:300;}
+.bottom-nav-inner{display:flex;justify-content:space-around;}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;border:none;color:var(--muted);font-family:var(--font);font-size:0.62rem;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all 0.2s;min-width:56px;}
+.bnav-btn.active{color:var(--green);}
+.bnav-icon{font-size:1.25rem;}
+.nav-tabs{display:flex;gap:2px;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tab{padding:13px 14px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--font);font-size:0.86rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;}
+.nav-tab.active{color:var(--green);border-bottom-color:var(--green);}
+.main-content{flex:1;overflow-y:auto;}
+.panel{display:none;padding:clamp(12px,3vw,28px);max-width:1100px;margin:0 auto;width:100%;}
+.panel.active{display:block;}
+.session-info-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.info-chip{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.82rem;display:flex;align-items:center;gap:6px;}
+.chip-val{font-family:var(--mono);color:var(--green);font-weight:600;font-size:0.9rem;}
+.chip-lbl{color:var(--muted);font-size:0.7rem;}
+.stress-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:clamp(14px,3vw,22px);}
+.card-title{font-size:0.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;font-weight:600;margin-bottom:14px;}
+.meter-card{display:flex;flex-direction:column;align-items:center;gap:14px;}
+.ring-wrap{position:relative;width:clamp(130px,35vw,170px);height:clamp(130px,35vw,170px);}
+.ring-svg{transform:rotate(-90deg);width:100%;height:100%;}
+.ring-bg{fill:none;stroke:var(--surface2);stroke-width:12;}
+.ring-fill{fill:none;stroke-width:12;stroke-linecap:round;stroke-dasharray:502;stroke-dashoffset:502;transition:stroke-dashoffset 0.8s ease,stroke 0.8s ease;}
+.ring-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.ring-pct{font-size:clamp(1.4rem,5vw,2rem);font-weight:700;font-family:var(--mono);line-height:1;}
+.ring-sub{font-size:0.66rem;color:var(--muted);margin-top:3px;}
+.stress-label{font-size:0.95rem;font-weight:700;letter-spacing:0.5px;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.stat-val{font-size:clamp(1.1rem,4vw,1.4rem);font-weight:700;font-family:var(--mono);color:var(--green);}
+.stat-lbl{font-size:0.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px;}
+.typing-prompt{font-size:0.86rem;color:var(--muted);background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:10px;line-height:1.6;font-style:italic;border:1px solid var(--border);}
+#typingArea{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:var(--mono);font-size:16px;resize:vertical;height:clamp(110px,22vw,150px);max-height:40vh;outline:none;line-height:1.6;transition:border-color 0.3s;-webkit-appearance:none;}
+#typingArea:focus{border-color:var(--green);}
+#typingArea::placeholder{color:var(--muted);}
+.typing-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.btn-sm{padding:11px 14px;border-radius:8px;font-family:var(--font);font-size:0.85rem;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;min-height:var(--tap);touch-action:manipulation;width:100%;}
+.btn-start{background:var(--green);color:#000;}
+.btn-stop{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.btn-sm:active{opacity:0.8;transform:scale(0.97);}
+.stress-alert{display:none;background:linear-gradient(135deg,rgba(255,77,109,0.15),rgba(255,77,109,0.05));border:1px solid rgba(255,77,109,0.4);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;animation:alertPulse 2s infinite;}
+@keyframes alertPulse{0%,100%{border-color:rgba(255,77,109,0.4);}50%{border-color:rgba(255,77,109,0.8);}}
+.alert-title{font-size:0.92rem;font-weight:700;color:var(--red);margin-bottom:5px;}
+.alert-msg{font-size:0.85rem;color:var(--text);line-height:1.5;}
+.alert-tip{margin-top:8px;padding:9px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:0.8rem;color:var(--muted);}
+.break-banner{display:none;background:linear-gradient(135deg,rgba(79,142,247,0.15),rgba(79,142,247,0.05));border:1px solid rgba(79,142,247,0.4);border-radius:var(--radius);padding:13px 16px;margin-bottom:14px;font-size:0.86rem;}
+.break-banner strong{color:var(--blue);}
+.breathing-card{display:none;text-align:center;margin-bottom:14px;}
+.breath-circle{width:clamp(80px,22vw,110px);height:clamp(80px,22vw,110px);border-radius:50%;background:radial-gradient(circle,rgba(0,229,160,0.3),rgba(0,229,160,0.05));border:2px solid rgba(0,229,160,0.4);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:600;color:var(--green);transition:transform 4s ease;}
+.breath-circle.inhale{transform:scale(1.4);}
+.breath-circle.exhale{transform:scale(1);}
+.breath-instruction{font-size:0.95rem;font-weight:600;margin-bottom:5px;}
+.breath-count{font-size:1.8rem;font-family:var(--mono);color:var(--green);font-weight:700;}
+.breath-close{margin-top:12px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:9px 20px;font-family:var(--font);cursor:pointer;min-height:var(--tap);}
+.chart-wrap{margin-bottom:14px;}
+.chart-wrap canvas{max-height:180px;}
+.history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.history-header h2{font-size:1.1rem;font-weight:700;}
+.btn-clear-hist{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:8px 14px;font-family:var(--font);font-size:0.82rem;cursor:pointer;min-height:var(--tap);}
+.history-empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;}
+.session-list{display:flex;flex-direction:column;gap:10px;}
+.session-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:flex-start;gap:12px;}
+.session-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.session-info{flex:1;min-width:0;}
+.session-date{font-size:0.72rem;color:var(--muted);margin-bottom:2px;}
+.session-name{font-size:0.9rem;font-weight:600;}
+.session-stats{display:flex;gap:10px;margin-top:5px;flex-wrap:wrap;}
+.session-stat{font-size:0.73rem;color:var(--muted);}
+.session-stat span{color:var(--text);font-weight:600;}
+.session-badge{padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;letter-spacing:0.5px;flex-shrink:0;white-space:nowrap;align-self:center;}
+.tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}
+.tip-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+.tip-icon{font-size:1.7rem;margin-bottom:10px;}
+.tip-title{font-size:0.92rem;font-weight:700;margin-bottom:7px;}
+.tip-body{font-size:0.83rem;color:var(--muted);line-height:1.7;}
+@media(max-width:359px){.brand h1{font-size:1.6rem;}.stat-val{font-size:1rem;}.bnav-btn{min-width:44px;padding:6px 6px;}.bnav-btn span:last-child{font-size:0.58rem;}}
+@media(min-width:600px){.session-info-bar{grid-template-columns:repeat(4,1fr);}.stress-grid{grid-template-columns:1fr 1fr;}.typing-actions{grid-template-columns:repeat(4,1fr);}}
+@media(min-width:900px){.nav-tabs{display:flex;}.bottom-nav{display:none!important;}.main-content{padding-bottom:0;}.topbar{padding:14px 28px;}.panel{padding:28px;}}
+@media(min-width:1200px){.panel{max-width:1200px;}.stress-grid{grid-template-columns:1fr 1.2fr;}}
+@media(max-width:899px){.nav-tabs{display:none;}.bottom-nav{display:block;}.main-content{padding-bottom:calc(80px + var(--sab));}}
+@media(orientation:landscape) and (max-height:480px) and (max-width:899px){.ring-wrap{width:clamp(90px,20vh,130px);height:clamp(90px,20vh,130px);}.stress-grid{grid-template-columns:1fr 1fr;}.card{padding:12px;}.breath-circle{width:70px;height:70px;}}
+@media(hover:hover) and (pointer:fine){.tab-btn:hover,.bnav-btn:hover,.nav-tab:hover{color:var(--green);}.btn-primary:hover{filter:brightness(1.08);}.btn-sm:hover{filter:brightness(1.08);}.session-card:hover,.tip-card:hover{border-color:var(--green);}}
+@media print{.bottom-nav,.topbar,.typing-actions,#breathingCard{display:none!important;}}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* Float widget: hidden in the normal tab, shown only once moved into the PiP window */
+.fw-root{display:none;}
+:root{--fw-pct:0;--fw-color:#00e5a0;}
+body.pip-doc{background:var(--bg);margin:0;height:100%;}
+body.pip-doc .fw-root{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;height:100vh;padding:14px;font-family:var(--font);color:var(--text);}
+.fw-ring{position:relative;width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--fw-color) calc(var(--fw-pct)*1%),var(--surface2) 0);transition:background 0.4s;}
+.fw-ring::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--surface);}
+.fw-ring span{position:relative;z-index:1;font-family:var(--mono);font-weight:600;font-size:1.1rem;}
+.fw-label{font-size:0.72rem;font-weight:600;letter-spacing:0.03em;color:var(--fw-color);}
+.fw-stats{display:flex;gap:14px;font-family:var(--mono);font-size:0.72rem;color:var(--muted);}
+.fw-typing{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:16px;padding:6px 8px;resize:none;height:52px;outline:none;line-height:1.4;-webkit-appearance:none;}
+.fw-typing:focus{border-color:var(--green);}
+.fw-typing::placeholder{color:var(--muted);font-size:0.7rem;}
+.fw-hint{font-size:0.62rem;color:var(--muted);text-align:center;line-height:1.3;}
+.fw-actions{display:flex;gap:6px;width:100%;}
+.fw-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:0.7rem;padding:7px 4px;cursor:pointer;min-height:32px;}
+.fw-btn-primary{background:linear-gradient(135deg,var(--green),var(--blue));color:#04120c;font-weight:600;border:none;}
+</style>
+</head>
+<body>
+<script>
+(function(){
+  function setVH(){document.documentElement.style.setProperty('--vh',(window.innerHeight*0.01)+'px');}
+  setVH();
+  window.addEventListener('resize',setVH);
+  window.addEventListener('orientationchange',setVH);
+  if(window.visualViewport){window.visualViewport.addEventListener('resize',setVH);}
+})();
+</script>
+
+<div id="loginScreen" class="screen active">
+  <div style="width:100%;max-width:420px;margin:0 auto;">
+    <div class="brand">
+      <div class="brand-icon">🧠</div>
+      <h1>StudyPulse</h1>
+      <p>Study Stress & Burnout Detector for Indian Students</p>
+    </div>
+    <div class="login-card">
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+        <button class="tab-btn" onclick="switchTab('register')">Register</button>
+      </div>
+      <div id="loginForm">
+        <div class="form-group"><label>Username</label><input type="text" id="loginUser" placeholder="Your username" autocomplete="username"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPass" placeholder="Your password" autocomplete="current-password"></div>
+        <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+        <div class="error-msg" id="loginErr">❌ Incorrect username or password.</div>
+        <button class="demo-link" onclick="demoLogin()">▶ Try Demo (no account needed)</button>
+      </div>
+      <div id="registerForm" style="display:none">
+        <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="Your full name" autocomplete="name"></div>
+        <div class="form-group"><label>Username</label><input type="text" id="regUser" placeholder="Choose a username" autocomplete="username"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="regPass" placeholder="Choose a password" autocomplete="new-password"></div>
+        <div class="form-group"><label>Class / Grade</label><select id="regGrade"><option value="">Select grade</option><option>Grade 6</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option><option>College / University</option></select></div>
+        <div class="form-group"><label>Exam Focus</label><select id="regExam"><option value="">Select exam type</option><option>Board Exams</option><option>JEE / NEET Preparation</option><option>Competitive Exams</option><option>College Assignments</option><option>General Studies</option></select></div>
+        <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+        <div class="error-msg" id="regErr">❌ Please fill all fields.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dashScreen" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">🧠 StudyPulse</span>
+      <span class="topbar-user" id="topUser"></span>
+      <span id="gradeTag"></span>
+    </div>
+    <button class="btn-logout" id="pipBtn" onclick="togglePiP()" title="Pop out a small always-on-top stress monitor">⧉ Float</button>
+    <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+  </div>
+
+  <div id="floatWidget" class="fw-root">
+    <div class="fw-ring" id="fwRing"><span id="fwPct">0%</span></div>
+    <div class="fw-label" id="fwLabel">● RELAXED</div>
+    <div class="fw-stats"><span id="fwWpm">— wpm</span><span id="fwBk">0 bk</span></div>
+    <textarea id="fwTyping" class="fw-typing" placeholder="Type here while floating…"></textarea>
+    <div class="fw-hint">Typing here keeps tracking your stress while this window floats on top of anything else.</div>
+    <div class="fw-actions">
+      <button class="fw-btn fw-btn-primary" id="fwStartStop" onclick="fwToggleSession()">▶ Start</button>
+      <button class="fw-btn" id="fwCloseBtn" onclick="exitPiP()">Back to tab</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchPanel('stress')">📊 Live Monitor</button>
+    <button class="nav-tab" onclick="switchPanel('chart')">📈 Trend Chart</button>
+    <button class="nav-tab" onclick="switchPanel('history')">📋 History</button>
+    <button class="nav-tab" onclick="switchPanel('tips')">💡 Tips</button>
+  </div>
+
+  <div class="main-content">
+
+    <div id="stressPanel" class="panel active">
+      <div class="session-info-bar">
+        <div class="info-chip"><span class="chip-lbl">Session</span><span class="chip-val" id="sessionTimer">00:00</span></div>
+        <div class="info-chip"><span class="chip-lbl">Keystrokes</span><span class="chip-val" id="totalKeys">0</span></div>
+        <div class="info-chip"><span class="chip-lbl">Pauses</span><span class="chip-val" id="pauseCount">0</span></div>
+        <div class="info-chip"><span class="chip-lbl">Status</span><span class="chip-val" id="sessionStatus" style="color:var(--muted)">Idle</span></div>
+      </div>
+      <div class="break-banner" id="breakBanner">☕ <strong>Take a break!</strong> 45+ minutes of study detected. Rest 5 minutes to improve retention.</div>
+      <div class="stress-alert" id="stressAlert">
+        <div class="alert-title">⚠️ High Stress Detected</div>
+        <div class="alert-msg" id="alertMsg">Your typing patterns suggest rising mental fatigue.</div>
+        <div class="alert-tip">💡 Try the breathing exercise to reset your focus.</div>
+      </div>
+      <div class="breathing-card card" id="breathingCard">
+        <div class="card-title">🫁 4-7-8 Breathing Exercise</div>
+        <div class="breath-circle" id="breathCircle">Breathe</div>
+        <div class="breath-instruction" id="breathInstruction">Get ready...</div>
+        <div class="breath-count" id="breathCount">—</div>
+        <button class="breath-close" onclick="stopBreathing()">✓ I feel better — close</button>
+      </div>
+      <div class="stress-grid">
+        <div class="card meter-card">
+          <div class="card-title">Stress Level</div>
+          <div class="ring-wrap">
+            <svg class="ring-svg" viewBox="0 0 180 180">
+              <circle class="ring-bg" cx="90" cy="90" r="80"/>
+              <circle class="ring-fill" id="ringFill" cx="90" cy="90" r="80" stroke="var(--green)"/>
+            </svg>
+            <div class="ring-label"><div class="ring-pct" id="ringPct">0%</div><div class="ring-sub">stress index</div></div>
+          </div>
+          <div class="stress-label" id="stressLabel" style="color:var(--green)">● RELAXED</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Live Metrics</div>
+          <div class="stats-grid">
+            <div class="stat-box"><div class="stat-val" id="statWPM">—</div><div class="stat-lbl">WPM</div></div>
+            <div class="stat-box"><div class="stat-val" id="statBackspace">0</div><div class="stat-lbl">Backspaces</div></div>
+            <div class="stat-box"><div class="stat-val" id="statPause">0s</div><div class="stat-lbl">Last Pause</div></div>
+            <div class="stat-box"><div class="stat-val" id="statIdle">0s</div><div class="stat-lbl">Idle Time</div></div>
+          </div>
+          <button class="btn-sm btn-start" style="margin-top:12px;" onclick="startBreathing()">🫁 Breathing Exercise</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">📝 Type Your Study Notes Here</div>
+        <div class="typing-prompt" id="typingPrompt">"Write anything you are currently studying — notes, answers, definitions, or your thoughts on exam preparation. Type naturally. The system monitors your typing pattern silently."</div>
+        <textarea id="typingArea" placeholder="Start typing here to begin your session..."></textarea>
+        <div class="typing-actions">
+          <button class="btn-sm btn-start" id="startBtn" onclick="startSession()">▶ Start</button>
+          <button class="btn-sm btn-stop" id="stopBtn" onclick="stopSession()" disabled>⏹ End</button>
+          <button class="btn-sm" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);" onclick="clearTyping()">✕ Clear</button>
+          <button class="btn-sm" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);" onclick="newPrompt()">🔄 Prompt</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="chartPanel" class="panel">
+      <div class="card chart-wrap"><div class="card-title">📈 Stress Level Over Session</div><canvas id="stressChart"></canvas></div>
+      <div class="card chart-wrap"><div class="card-title">⌨️ Words Per Minute</div><canvas id="wpmChart"></canvas></div>
+    </div>
+
+    <div id="historyPanel" class="panel">
+      <div class="history-header"><h2>📋 Past Sessions</h2><button class="btn-clear-hist" onclick="clearHistory()">Clear All</button></div>
+      <div id="historyList"></div>
+    </div>
+
+    <div id="tipsPanel" class="panel">
+      <div class="tips-grid">
+        <div class="tip-card"><div class="tip-icon">🧘</div><div class="tip-title">4-7-8 Breathing</div><div class="tip-body">When stress spikes: inhale 4s, hold 7s, exhale 8s. Repeat 4 times. Directly calms the nervous system. Use the built-in tool in Live Monitor.</div></div>
+        <div class="tip-card"><div class="tip-icon">⏱️</div><div class="tip-title">Pomodoro Technique</div><div class="tip-body">Study 25 min, rest 5 min, repeat 4 times, then rest 20 min. Especially effective for JEE/NEET mock test prep — prevents 3-hour burnout sessions.</div></div>
+        <div class="tip-card"><div class="tip-icon">💧</div><div class="tip-title">Hydration & Posture</div><div class="tip-body">Dehydration raises stress by 25%. Keep water at your desk. Sit upright — slouching cuts oxygen to brain. Stand 2 minutes every 30 minutes.</div></div>
+        <div class="tip-card"><div class="tip-icon">🌙</div><div class="tip-title">Sleep Over Late Study</div><div class="tip-body">Memory consolidates during REM sleep. 8 hours sleep with midnight study beats 5 hours sleep with 2 AM study every time for long-term retention.</div></div>
+        <div class="tip-card"><div class="tip-icon">✍️</div><div class="tip-title">Active Recall</div><div class="tip-body">Writing answers from memory is 3× more effective than re-reading. The mild stress of recall is productive — it literally strengthens neural connections.</div></div>
+        <div class="tip-card"><div class="tip-icon">🔴</div><div class="tip-title">When to Stop</div><div class="tip-body">If the stress meter stays red for 10+ minutes, end the session. Persistent stress blocks learning. Talk to a parent, teacher, or counselor early.</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bnav-btn active" onclick="switchPanel('stress')" id="bnav-stress"><span class="bnav-icon">📊</span><span>Monitor</span></button>
+      <button class="bnav-btn" onclick="switchPanel('chart')" id="bnav-chart"><span class="bnav-icon">📈</span><span>Chart</span></button>
+      <button class="bnav-btn" onclick="switchPanel('history')" id="bnav-history"><span class="bnav-icon">📋</span><span>History</span></button>
+      <button class="bnav-btn" onclick="switchPanel('tips')" id="bnav-tips"><span class="bnav-icon">💡</span><span>Tips</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB={getUsers(){try{return JSON.parse(localStorage.getItem('sp_users')||'{}')}catch(e){return{}}},saveUsers(u){localStorage.setItem('sp_users',JSON.stringify(u))},getSessions(u){try{return JSON.parse(localStorage.getItem('sp_sess_'+u)||'[]')}catch(e){return[]}},saveSessions(u,s){localStorage.setItem('sp_sess_'+u,JSON.stringify(s))},getCurrentUser(){return localStorage.getItem('sp_current')||null},setCurrentUser(u){localStorage.setItem('sp_current',u)}};
+function switchTab(t){document.getElementById('loginForm').style.display=t==='login'?'block':'none';document.getElementById('registerForm').style.display=t==='register'?'block':'none';document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));}
+function doLogin(){const u=document.getElementById('loginUser').value.trim(),p=document.getElementById('loginPass').value,users=DB.getUsers(),e=document.getElementById('loginErr');if(!u||!p||!users[u]||users[u].password!==p){e.style.display='block';return;}e.style.display='none';DB.setCurrentUser(u);openDash(u,users[u]);}
+function demoLogin(){const users=DB.getUsers();if(!users['demo']){users['demo']={name:'Demo Student',password:'demo',grade:'Grade 10',exam:'Board Exams'};DB.saveUsers(users);}DB.setCurrentUser('demo');openDash('demo',users['demo']);}
+function doRegister(){const name=document.getElementById('regName').value.trim(),u=document.getElementById('regUser').value.trim(),p=document.getElementById('regPass').value,grade=document.getElementById('regGrade').value,exam=document.getElementById('regExam').value,e=document.getElementById('regErr');if(!name||!u||!p||!grade||!exam){e.style.display='block';return;}const users=DB.getUsers();if(users[u]){e.textContent='❌ Username taken.';e.style.display='block';return;}users[u]={name,password:p,grade,exam};DB.saveUsers(users);DB.setCurrentUser(u);openDash(u,users[u]);}
+function doLogout(){stopSession();localStorage.removeItem('sp_current');document.getElementById('dashScreen').classList.remove('active');document.getElementById('loginScreen').classList.add('active');document.getElementById('loginUser').value='';document.getElementById('loginPass').value='';}
+function openDash(u,info){document.getElementById('loginScreen').classList.remove('active');document.getElementById('dashScreen').classList.add('active');document.getElementById('topUser').textContent=info.name;document.getElementById('gradeTag').textContent=info.grade;switchPanel('stress');renderHistory();}
+window.addEventListener('DOMContentLoaded',()=>{const cu=DB.getCurrentUser();if(cu){const users=DB.getUsers();if(users[cu])openDash(cu,users[cu]);}initCharts();});
+function switchPanel(name){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));document.getElementById(name+'Panel').classList.add('active');const map={stress:0,chart:1,history:2,tips:3};document.querySelectorAll('.nav-tab')[map[name]]?.classList.add('active');document.getElementById('bnav-'+name)?.classList.add('active');if(name==='chart')updateCharts();if(name==='history')renderHistory();}
+let sessionActive=false,sessionStart=null,sessionTimerIv=null,analysisIv=null,keyTimestamps=[],backspaceCount=0,pauseCount=0,lastKeyTime=null,totalKeystrokes=0,idleTotal=0,stressHistory=[],wpmHistory=[],wpmBaseline=null,breakShown=false;
+const PROMPTS=["Write a summary of what you studied today. Include key formulas, dates, or concepts you remember.","Explain Newton's three laws of motion in your own words as if teaching a classmate.","Write about what topics you find most difficult and why. What steps can you take to improve?","Describe the water cycle, human digestive system, or any science topic you are studying.","Write your preparation strategy for your upcoming exam — what you'll cover this week and next.","Explain the difference between photosynthesis and respiration in your own words.","Write 5 things you learned this week from any subject you enjoy studying."];
+function newPrompt(){document.getElementById('typingPrompt').textContent='"'+PROMPTS[Math.floor(Math.random()*PROMPTS.length)]+'"';}
+function clearTyping(){document.getElementById('typingArea').value='';fwTypingEl.value='';backspaceCount=0;document.getElementById('statBackspace').textContent='0';}
+function startSession(){sessionActive=true;sessionStart=Date.now();keyTimestamps=[];backspaceCount=0;pauseCount=0;totalKeystrokes=0;idleTotal=0;stressHistory=[];wpmHistory=[];wpmBaseline=null;breakShown=false;lastKeyTime=null;chartStressData={labels:[],data:[]};chartWpmData={data:[]};document.getElementById('startBtn').disabled=true;document.getElementById('stopBtn').disabled=false;document.getElementById('sessionStatus').textContent='Active';document.getElementById('sessionStatus').style.color='var(--green)';document.getElementById('stressAlert').style.display='none';document.getElementById('breakBanner').style.display='none';if(pipWindow){fwTypingEl.focus();}else{document.getElementById('typingArea').focus();}sessionTimerIv=setInterval(updateTimer,1000);analysisIv=setInterval(analyzeStress,3000);fwSyncButton();}
+function stopSession(){if(!sessionActive)return;sessionActive=false;clearInterval(sessionTimerIv);clearInterval(analysisIv);document.getElementById('startBtn').disabled=false;document.getElementById('stopBtn').disabled=true;document.getElementById('sessionStatus').textContent='Ended';document.getElementById('sessionStatus').style.color='var(--muted)';const cu=DB.getCurrentUser();if(cu&&stressHistory.length>0){const avgStress=Math.round(stressHistory.reduce((a,b)=>a+b,0)/stressHistory.length),maxStress=Math.max(...stressHistory),duration=Math.round((Date.now()-sessionStart)/1000),avgWpm=wpmHistory.length?Math.round(wpmHistory.reduce((a,b)=>a+b,0)/wpmHistory.length):0,sessions=DB.getSessions(cu);sessions.unshift({date:new Date().toLocaleString('en-IN'),duration,avgStress,maxStress,avgWpm,backspaces:backspaceCount,pauses:pauseCount});DB.saveSessions(cu,sessions.slice(0,50));}fwSyncButton();}
+document.getElementById('typingArea').addEventListener('focus',()=>{setTimeout(()=>document.getElementById('typingArea').scrollIntoView({behavior:'smooth',block:'center'}),300);});
+function handleTypingKeydown(e){if(!sessionActive)return;const now=Date.now();if(lastKeyTime){const gap=now-lastKeyTime;if(gap>5000){pauseCount++;document.getElementById('pauseCount').textContent=pauseCount;document.getElementById('statPause').textContent=Math.round(gap/1000)+'s';}if(gap>2000){idleTotal+=gap;document.getElementById('statIdle').textContent=Math.round(idleTotal/1000)+'s';}}if(e.key==='Backspace')backspaceCount++;keyTimestamps.push(now);totalKeystrokes++;lastKeyTime=now;document.getElementById('totalKeys').textContent=totalKeystrokes;document.getElementById('statBackspace').textContent=backspaceCount;}
+document.getElementById('typingArea').addEventListener('keydown',handleTypingKeydown);
+function updateTimer(){const el=Math.round((Date.now()-sessionStart)/1000);document.getElementById('sessionTimer').textContent=String(Math.floor(el/60)).padStart(2,'0')+':'+String(el%60).padStart(2,'0');if(el>=2700&&!breakShown){breakShown=true;document.getElementById('breakBanner').style.display='block';}}
+function calcWPM(){const now=Date.now();return Math.round(keyTimestamps.filter(t=>now-t<60000).length/5);}
+function analyzeStress(){const elapsed=(Date.now()-sessionStart)/1000;if(elapsed<10)return;const wpm=calcWPM();if(wpm>0){wpmHistory.push(wpm);document.getElementById('statWPM').textContent=wpm;}if(!wpmBaseline&&wpmHistory.length>=3)wpmBaseline=wpmHistory.reduce((a,b)=>a+b,0)/wpmHistory.length;let stress=0;const bsRate=totalKeystrokes>0?(backspaceCount/totalKeystrokes)*100:0;if(bsRate>25)stress+=35;else if(bsRate>15)stress+=20;else if(bsRate>8)stress+=10;const pauseRate=elapsed>0?(pauseCount/elapsed)*60:0;if(pauseRate>3)stress+=30;else if(pauseRate>1.5)stress+=18;else if(pauseRate>0.5)stress+=8;if(wpmBaseline&&wpm>0){const drop=((wpmBaseline-wpm)/wpmBaseline)*100;if(drop>40)stress+=25;else if(drop>20)stress+=15;else if(drop>10)stress+=5;}const idleRatio=elapsed>0?(idleTotal/1000)/elapsed:0;if(idleRatio>0.5)stress+=10;else if(idleRatio>0.3)stress+=5;stress=Math.min(100,Math.round(stress));stressHistory.push(stress);updateStressUI(stress,wpm);}
+function updateStressUI(stress,wpm){const offset=502-(502*stress/100),ring=document.getElementById('ringFill');ring.style.strokeDashoffset=offset;document.getElementById('ringPct').textContent=stress+'%';let color,label;if(stress<30){color='var(--green)';label='● RELAXED';}else if(stress<55){color='var(--yellow)';label='◉ MILD STRESS';}else if(stress<75){color='var(--orange)';label='⚠ ELEVATED';}else{color='var(--red)';label='🔴 HIGH STRESS';}ring.style.stroke=color;document.getElementById('ringPct').style.color=color;document.getElementById('stressLabel').textContent=label;document.getElementById('stressLabel').style.color=color;document.getElementById('stressAlert').style.display=stress>=65?'block':'none';if(stress>=65){const msgs=['Your backspace rate suggests rising frustration.','Your typing pace has slowed — possible fatigue.','Frequent pauses detected — you may be overwhelmed.'];document.getElementById('alertMsg').textContent=msgs[Math.floor(Math.random()*msgs.length)];}fwPctEl.textContent=stress+'%';fwRingEl.style.setProperty('--fw-pct',stress);fwRingEl.style.setProperty('--fw-color',color);fwLabelEl.textContent=label;fwLabelEl.style.color=color;fwWpmEl.textContent=(wpm||0)+' wpm';fwBkEl.textContent=backspaceCount+' bk';const ts=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});chartStressData.labels.push(ts);chartStressData.data.push(stress);chartWpmData.data.push(wpm||0);if(chartStressData.labels.length>30){chartStressData.labels.shift();chartStressData.data.shift();chartWpmData.data.shift();}if(stressChartObj){stressChartObj.data.labels=chartStressData.labels;stressChartObj.data.datasets[0].data=chartStressData.data;stressChartObj.update('none');}if(wpmChartObj){wpmChartObj.data.labels=chartStressData.labels;wpmChartObj.data.datasets[0].data=chartWpmData.data;wpmChartObj.update('none');}}
+let stressChartObj=null,wpmChartObj=null,chartStressData={labels:[],data:[]},chartWpmData={data:[]};
+function initCharts(){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';s.onload=buildCharts;document.head.appendChild(s);}
+function buildCharts(){const o={responsive:true,animation:false,plugins:{legend:{labels:{color:'#6b7fa3',font:{family:'Space Grotesk',size:11}}}},scales:{x:{ticks:{color:'#6b7fa3',maxTicksLimit:6,font:{size:10}},grid:{color:'#1e2d45'}},y:{ticks:{color:'#6b7fa3',font:{size:10}},grid:{color:'#1e2d45'},min:0}}};stressChartObj=new Chart(document.getElementById('stressChart').getContext('2d'),{type:'line',data:{labels:[],datasets:[{label:'Stress %',data:[],borderColor:'rgb(255,77,109)',backgroundColor:'rgba(255,77,109,0.1)',borderWidth:2,pointRadius:3,tension:0.4,fill:true}]},options:o});wpmChartObj=new Chart(document.getElementById('wpmChart').getContext('2d'),{type:'line',data:{labels:[],datasets:[{label:'WPM',data:[],borderColor:'rgb(79,142,247)',backgroundColor:'rgba(79,142,247,0.1)',borderWidth:2,pointRadius:3,tension:0.4,fill:true}]},options:o});}
+function updateCharts(){if(stressChartObj){stressChartObj.data.labels=chartStressData.labels;stressChartObj.data.datasets[0].data=chartStressData.data;stressChartObj.update();}if(wpmChartObj){wpmChartObj.data.labels=chartStressData.labels;wpmChartObj.data.datasets[0].data=chartWpmData.data;wpmChartObj.update();}}
+function renderHistory(){const cu=DB.getCurrentUser(),sessions=cu?DB.getSessions(cu):[],el=document.getElementById('historyList');if(!sessions.length){el.innerHTML='<div class="history-empty"><div class="empty-icon">📋</div><div>No sessions yet.<br>Complete a session to see history here.</div></div>';return;}el.innerHTML='<div class="session-list">'+sessions.map((s,i)=>{let color,badge,bg;if(s.avgStress<30){color='#00e5a0';badge='RELAXED';bg='rgba(0,229,160,0.12)';}else if(s.avgStress<55){color='#f5c842';badge='MILD';bg='rgba(245,200,66,0.12)';}else if(s.avgStress<75){color='#ff8c42';badge='ELEVATED';bg='rgba(255,140,66,0.12)';}else{color='#ff4d6d';badge='HIGH';bg='rgba(255,77,109,0.12)';}const dur=Math.floor(s.duration/60)+'m '+(s.duration%60)+'s';return`<div class="session-card"><div class="session-dot" style="background:${color}"></div><div class="session-info"><div class="session-date">${s.date}</div><div class="session-name">Session #${sessions.length-i}</div><div class="session-stats"><div class="session-stat">Duration: <span>${dur}</span></div><div class="session-stat">Avg Stress: <span style="color:${color}">${s.avgStress}%</span></div><div class="session-stat">WPM: <span>${s.avgWpm}</span></div></div></div><div class="session-badge" style="background:${bg};color:${color}">${badge}</div></div>`;}).join('')+'</div>';}
+function clearHistory(){const cu=DB.getCurrentUser();if(cu&&confirm('Clear all session history?')){DB.saveSessions(cu,[]);renderHistory();}}
+let breathCycle=0;
+function startBreathing(){document.getElementById('breathingCard').style.display='block';document.getElementById('breathingCard').scrollIntoView({behavior:'smooth',block:'nearest'});breathCycle=0;runBreathCycle();}
+function runBreathCycle(){if(breathCycle>=4){document.getElementById('breathInstruction').textContent='✅ 4 cycles complete!';document.getElementById('breathCount').textContent='';document.getElementById('breathCircle').textContent='😌';return;}const circle=document.getElementById('breathCircle'),instr=document.getElementById('breathInstruction'),cnt=document.getElementById('breathCount');instr.textContent='Inhale slowly through your nose';circle.classList.add('inhale');circle.textContent='↑';let n=4;cnt.textContent=n;const t1=setInterval(()=>{n--;cnt.textContent=n;if(n<=0){clearInterval(t1);instr.textContent='Hold your breath';circle.textContent='○';let h=7;cnt.textContent=h;const t2=setInterval(()=>{h--;cnt.textContent=h;if(h<=0){clearInterval(t2);instr.textContent='Exhale through your mouth';circle.classList.remove('inhale');circle.classList.add('exhale');circle.textContent='↓';let ex=8;cnt.textContent=ex;const t3=setInterval(()=>{ex--;cnt.textContent=ex;if(ex<=0){clearInterval(t3);circle.classList.remove('exhale');breathCycle++;instr.textContent=`Cycle ${breathCycle}/4 done.`;cnt.textContent='';circle.textContent='🌬️';setTimeout(runBreathCycle,1500);}},1000);}},1000);}},1000);}
+function stopBreathing(){document.getElementById('breathingCard').style.display='none';const c=document.getElementById('breathCircle');c.classList.remove('inhale','exhale');c.textContent='Breathe';breathCycle=0;}
+// ---- Picture-in-Picture float widget ----
+// Keep direct references now, before the node is ever moved into another
+// document — document.getElementById() only searches its own document, so
+// once #floatWidget is reparented into the PiP window it would stop
+// resolving from the main `document`.
+const floatWidgetEl=document.getElementById('floatWidget'),fwRingEl=document.getElementById('fwRing'),fwPctEl=document.getElementById('fwPct'),fwLabelEl=document.getElementById('fwLabel'),fwWpmEl=document.getElementById('fwWpm'),fwBkEl=document.getElementById('fwBk'),fwStartStopBtn=document.getElementById('fwStartStop'),fwTypingEl=document.getElementById('fwTyping');
+fwTypingEl.addEventListener('keydown',handleTypingKeydown);
+let pipWindow=null,floatWidgetHome=null;
+
+function fwSyncButton(){fwStartStopBtn.textContent=sessionActive?'⏹ Stop':'▶ Start';}
+function fwToggleSession(){if(sessionActive){stopSession();}else{startSession();}}
+
+async function togglePiP(){
+  if(!('documentPictureInPicture' in window)){
+    alert("Your browser doesn't support pop-out windows yet. Try the latest Chrome or Edge on a laptop/desktop.");
+    return;
+  }
+  if(pipWindow){exitPiP();return;}
+  await enterPiP();
+}
+
+async function enterPiP(){
+  floatWidgetHome={parent:floatWidgetEl.parentNode,next:floatWidgetEl.nextSibling};
+  pipWindow=await documentPictureInPicture.requestWindow({width:250,height:380});
+  [...document.styleSheets].forEach((styleSheet)=>{
+    try{
+      const rules=[...styleSheet.cssRules].map((r)=>r.cssText).join('');
+      const style=document.createElement('style');
+      style.textContent=rules;
+      pipWindow.document.head.appendChild(style);
+    }catch(e){
+      const link=document.createElement('link');
+      link.rel='stylesheet';
+      link.type=styleSheet.type;
+      link.media=styleSheet.media;
+      link.href=styleSheet.href;
+      pipWindow.document.head.appendChild(link);
+    }
+  });
+  pipWindow.document.body.className='pip-doc';
+  pipWindow.document.title='StudyPulse';
+  pipWindow.document.body.appendChild(floatWidgetEl);
+  fwSyncButton();
+  document.getElementById('pipBtn').textContent='⧉ Floating…';
+  if(sessionActive){fwTypingEl.focus();}
+  pipWindow.addEventListener('pagehide',restoreWidget,{once:true});
+}
+
+function restoreWidget(){
+  if(floatWidgetHome){floatWidgetHome.parent.insertBefore(floatWidgetEl,floatWidgetHome.next);}
+  pipWindow=null;
+  document.getElementById('pipBtn').textContent='⧉ Float';
+  if(sessionActive){document.getElementById('typingArea').focus();}
+}
+
+function exitPiP(){if(pipWindow){pipWindow.close();}}
+
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){window.addEventListener('load',()=>{navigator.serviceWorker.register('service-worker.js').catch(()=>{});});}
+</script>
+</body>
+</html>
